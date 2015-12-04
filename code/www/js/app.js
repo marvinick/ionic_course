@@ -18,7 +18,7 @@ angular.module('songhop', ['ionic', 'songhop.controllers'])
     
 
   });
-})
+}) 
 
 
 .config(function($stateProvider, $urlRouterProvider) {
