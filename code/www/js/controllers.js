@@ -5,34 +5,57 @@ angular.module('songhop.controllers', ['ionic', 'songhop.services'])
 Controller for the discover page
 */
 
-.controller('DiscoverCtrl', function($scope, $timeout, User, Recommendations) {
+.controller('DiscoverCtrl', function($scope, $ionicLoading, $timeout, User, Recommendations) {
+
+  //helper function for loading 
+  var showLoading = function() {
+    $ionicLoading.show({
+      template: '<i class="ion-loading-c"></i>',
+      noBackDrop: true
+    });
+  }
+
+  var hideLoading = function() {
+    $ionicLoading.hide();
+  }
+
+  // set loading to true first time while we retrieve songs from server. 
+  showLoading();
 
    Recommendations.init()
     .then(function(){
       $scope.currentSong = Recommendations.queue[0];
       Recommendations.playCurrentSong();
+    })
+    .then(function(){
+      // turn loading off 
+      hideLoading();
+      $scope.currentSong.loaded = true;
     });
 
   //fired when we favorite / skip a song 
   $scope.sendFeedback = function (bool) {
 
-    // prepare the next song 
-    Recommendations.nextSong();
-
-    $timeout(function() {
-      // $timeout to allow animation to complete
-      $scope.currentSong = Recommendations.queue[0];
-    }, 250);
-
-    Recommendations.playCurrentSong();
-
     // first, add to favorites if they favorited
     if (bool) User.addSongToFavorites($scope.currentSong);
 
-  	//set variable for the correct animation sequence
-  	$scope.currentSong.rated = bool;
-  	$scope.currentSong.hide = true;
+    //set variable for the correct animation sequence
+    $scope.currentSong.rated = bool;
+    $scope.currentSong.hide = true;
 
+    // prepare the next song 
+    Recommendations.nextSong();
+
+    // update current song in scope, timeout to allow animation to complate
+    $timeout(function() {
+      // $timeout to allow animation to complete
+      $scope.currentSong = Recommendations.queue[0];
+      $scope.currentSong.loaded = false;
+    }, 250);
+
+    Recommendations.playCurrentSong().then(function() {
+      $scope.currentSong.loaded = true;
+    });
   }
 
   // used for retrieving the next album image.
