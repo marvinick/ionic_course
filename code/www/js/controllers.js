@@ -75,6 +75,8 @@ Controller for the favorites page
 */
 .controller('FavoritesCtrl', function($scope, User) {
 
+  $scope.username = User.username;
+
 	// get the list 	of our favorites from the user services 
 	$scope.favorites = User.favorites;
 
@@ -106,4 +108,31 @@ Controller for our tab bar
     Recommendations.init();
   }
 
+  $scope.logout = function() {
+    User.destroySession();
+
+    // instead of using $state.go, we're going to redirect.
+    // reason: we need to ensure views aren't cached.
+    $window.location.href = 'index.html';
+  }
+
+})
+
+.controller('SplashCtrl', function($scope, $state, User) {
+
+  // attempt to signup/login via User.auth
+  $scope.submitForm = function(username, signingUp) {
+    User.auth(username, signingUp).then(function(){
+      // session is now set, so lets redirect to discover page
+      $state.go('tab.discover');
+
+    }, function() {
+      // error handling here
+      alert('Hmm... try another username.');
+
+    });
+  }
+
 });
+
+
